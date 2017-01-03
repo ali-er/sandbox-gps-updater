@@ -5,9 +5,10 @@
   "main": "main.js",
   "author": "Ali Ershadi",
   "dependencies": {
+    "electron-auto-updater": "^0.9.0",
     "electron-squirrel-startup": "^1.0.0",
     "gps-engine": "git+ssh://git@bitbucket.org:canmap/gps-engine.git",
-    "serialport": "^4.0.6",
-    "nedb": "^1.8.0"
+    "nedb": "^1.8.0",
+    "serialport": "^4.0.6"
   }
 }

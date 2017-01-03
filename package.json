@@ -10,7 +10,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/ali-er/sandbox-gps-updater"
+    "url": "http://bitbucket.org/canmap/sandbox-gps.git"
   },
   "keywords": [
     "Electron",
@@ -29,7 +29,6 @@
   },
   "build": {
     "appId": "canmap.sandbox.gps",
-    "provider": "github",
     "mac": {
       "category": "gps"
     },
