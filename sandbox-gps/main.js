@@ -19,7 +19,7 @@ const Datastore = require('nedb');
 const appVersion = require('./package.json').version;
 const {dialog} = electron
 
-const db = new Datastore({ filename: './stat_db.json', autoload: true });
+const db = new Datastore({ filename: app.getPath("userData") + '/stat_db.json', autoload: true });
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
