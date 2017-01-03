@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>Hello World!</title>
+  <link rel="stylesheet" href="./photon-0.1.2-dist/css/photon.min.css">
+  <style>
+    .form-group {}
+    
+    .control {
+      position: absolute
+    }
+    
+    .content {}
+  </style>
+</head>
+
+<body>
+
+
+  <div class="window">
+    <header class="toolbar toolbar-header">
+      <h1 class="title"> Version <script>document.write(require('electron').remote.app.getVersion())</script></h1>
+    </header>
+    <div class="window-content">
+      <div class="pane-group">
+        <div class="pane-sm sidebar">
+
+
+          <div class="form-group">
+            <label>Port</label>
+            <select class="form-control" id="cbxPortList">  </select>
+          </div>
+
+          <div class="form-group">
+            <label>Baudrate</label>
+            <select class="form-control" id="cbxBaudrate">
+<option>---</option>
+<option>2400</option>
+<option>4800</option>
+<option>9600</option>
+<option>12000</option>
+<option>14400</option>
+</select>
+
+          </div>
+
+          <div class="form-group">
+            <label>Protocol</label>
+            <select class="form-control" id="cbxProtocol">
+<option>NMEA</option>
+<option>RAW</option>
+</select>
+          </div>
+
+
+          <div class="form-group">
+            <label>Delimiter</label>
+            <select class="form-control" id="cbxDelimiter">
+<option data-value="0">LF ( Line Feed )</option>
+<option data-value="1">CR ( Carrage Return ) </option>
+<option data-value="2">CR+LF</option>
+</select>
+          </div>
+          <div class="form-group">
+            <label>Parser</label>
+            <select class="form-control" id="cbxParserType">
+<option data-value="0">READLINE</option>
+<option data-value="1">BINARY</option>
+</select>
+          </div>
+          <div class="form-group">
+            <button class="btn btn-large btn-primary" id="btnOpen">Open</button>
+            <button class="btn btn-large btn-primary" id="btnClose">Close</button>
+            <button class="btn btn-large btn-primary" id="btnClear">Clear</button>
+            <button class="btn btn-large btn-primary" id="btnSave">Save</button>
+          </div>
+
+        </div>
+        <div class="pane">
+          <table id="tblGPSReadings" style="overflow-y:scroll">
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th>Lat</th>
+                <th>Long</th>
+                <th>alt</th>
+                <th>No. Sat Fix</th>
+                <th>No. Sat Visible</th>
+                <th>HDOP</th>
+                <th>VDOP</th>
+                <th>PDOP</th>
+                <th>GPS Fix</th>
+                <th>Fix Type</th>
+                <th>H Acc (63%)</th>
+                <th>H Acc (98.2%)</th>
+                <th>Noise</th>
+                <th>Satellites Used</th>
+                <th>Satellites in View </th>
+              </tr>
+              <tbody>
+              </tbody>
+            </thead>
+
+
+          </table>
+        </div>
+      </div>
+    </div>
+    <footer class="toolbar toolbar-footer">
+      <h1 class="title">Footer</h1>
+    </footer>
+  </div>
+</body>
+
+<script>
+    // You can also require other files to run in this process
+    require('./renderer.js')
+    const SaveToFile = require('./saveToFile.js')
+
+    var appContext = {
+      
+    };
+
+
+    const SerialPort = require('serialport')
+
+    const GPSEngine = require('gps-engine')(SerialPort);
+
+    GPSEngine.init({
+        comport:"COM30",
+        baudrate : 9600,
+        logging : true
+    })
+    GPSEngine.onRawOutput = function(data){
+        console.log(data);
+    }
+    GPSEngine.onPositionData = function(data){
+   
+        if( !appContext.gpsPositionList ){
+          appContext.gpsPositionList = new Array();
+        }
+        /*
+        if(  appContext.gpsPositionList.length > 30 ){
+          appContext.gpsPositionList = new Array();
+        }
+        */
+       
+        appContext.gpsPositionList.push ( data );
+
+
+        UpdateView(appContext);
+    }
+
+    GPSEngine.onError = function(data) {
+        console.log(data)
+    }
+
+    GPSEngine.getPortList().then(function(data){
+
+        appContext.portList = data;
+        appContext.bBindPortList = true;
+        UpdateView(appContext);
+    })
+
+
+    function UpdateView ( context ){
+
+        if ( appContext.bBindPortList){
+
+            let cbxPortList = document.getElementById("cbxPortList");
+            let cbxBaudrate = document.getElementById("cbxBaudrate");
+            let optionNode = document.createElement("option");
+
+
+            optionNode.setAttribute("data-value","")
+            optionNode.innerHTML = "---"
+            cbxPortList.appendChild(optionNode)
+
+            for(var i = 0; i < appContext.portList.length; ++i ){
+              optionNode = document.createElement("option");
+              optionNode.setAttribute("data-value",appContext.portList[i].comName)
+              optionNode.innerHTML = appContext.portList[i].comName 
+              cbxPortList.appendChild(optionNode)
+            }
+
+
+            cbxPortList.onchange = null;
+            cbxPortList.onchange = function(e){
+               
+
+                
+            }
+            cbxBaudrate.onchange = null;
+            cbxBaudrate.onchange = function(e){
+                let l_iBaudrate = document.getElementById("cbxBaudrate").value;
+                if ( l_iBaudrate && Number.isInteger(l_iBaudrate) ){
+                    GPSEngine.init( { baudrate : +l_iBaudrate } );
+                }
+            }
+
+            
+            document.getElementById("btnOpen").onclick = function(){
+                console.log("open")
+
+                let l_pConfig = {};
+
+                l_pConfig.comport =  document.getElementById("cbxPortList").selectedOptions[0].getAttribute("data-value") ;
+                switch( document.getElementById("cbxDelimiter").selectedOptions[0].getAttribute("data-value").toString() ){
+                  case "0":
+                    l_pConfig.delimiter = "\n"
+                    break
+                  case "1":
+                    l_pConfig.delimiter = "\r"
+                    break
+                  case "2":
+                    l_pConfig.delimiter = "\r\n"
+                    break
+                 
+                }
+
+                switch( document.getElementById("cbxParserType").selectedOptions[0].getAttribute("data-value").toString() ){
+                  case "0":
+                    l_pConfig.parserType = "READLINE"
+                    break
+                  case "1":
+                    l_pConfig.parserType = "BINARY"
+                    break
+                }
+
+                
+        
+                let l_iBaudrate = document.getElementById("cbxBaudrate").value;
+                if ( l_iBaudrate && Number.isInteger(parseFloat(l_iBaudrate)) ){
+
+                    l_pConfig.baudrate =  +l_iBaudrate
+                    
+                }
+                l_pConfig.protocol = document.getElementById("cbxProtocol").value
+
+                GPSEngine.init( l_pConfig );
+
+                GPSEngine.open();
+            }
+            document.getElementById("btnClose").onclick = function(){
+              GPSEngine.close();
+            }
+
+            document.getElementById("btnSave").onclick = function(){
+                if( appContext.gpsPositionList ){
+                    SaveToFile.save(appContext.gpsPositionList);
+                }
+            }
+
+            document.getElementById("btnClear").onclick = function(){
+              document.getElementById("tblGPSReadings").getElementsByTagName("tbody")[0].innerHTML = "";
+              appContext.gpsPositionList= [];
+            }
+            appContext.bBindPortList = false;
+        }
+
+        function populate(row,data){
+            
+            row.insertCell().innerHTML = new Date(data.dateTime).toISOString()
+            row.insertCell().innerHTML = data.latitude
+            row.insertCell().innerHTML = data.longitude
+            row.insertCell().innerHTML = data.altitude
+            row.insertCell().innerHTML = data.numSatelliteFix
+            row.insertCell().innerHTML = data.satellitesView
+            
+            row.insertCell().innerHTML = data.hdop
+            row.insertCell().innerHTML = data.vdop
+            row.insertCell().innerHTML = data.pdop
+            row.insertCell().innerHTML = data.positionFixType.description
+            row.insertCell().innerHTML = data.fixType.description
+
+  
+            row.insertCell().innerHTML = data.horizontalAccuracy1 ? data.horizontalAccuracy1 : NaN
+    
+
+            row.insertCell().innerHTML = data.horizontalAccuracy2 ? data.horizontalAccuracy2 : NaN
+ 
+
+            row.insertCell().innerHTML = JSON.stringify(data.noise)
+
+            row.insertCell().innerHTML = JSON.stringify(data.satellitesFix)
+          
+            
+            row.insertCell().innerHTML = JSON.stringify(data._satellites)
+        }
+
+
+        if(appContext.gpsPositionList){
+
+            let item = document.createElement("tr");
+            item.innerHTML = JSON.stringify( appContext.gpsPositionList[ appContext.gpsPositionList.length - 1] );
+            let row = document.getElementById("tblGPSReadings").getElementsByTagName("tbody")[0].insertRow();
+
+            populate(row,appContext.gpsPositionList[ appContext.gpsPositionList.length - 1]);
+
+            
+
+        }
+
+    }
+
+  
+
+  </script>
+
+</html>

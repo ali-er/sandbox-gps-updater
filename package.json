@@ -1,0 +1,44 @@
+{
+  "name": "sandbox-gps-updater",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "electron ./sandbox-gps",
+    "dev": "npm run start",
+    "postinstall": "install-app-deps",
+    "dist": "build --win",
+    "rebuild-electron": "del \"node_modules\\serialport\\build\\Release\\serialport.node\" | .\\node_modules\\.bin\\electron-rebuild.cmd"
+  },
+  "repository": {
+    "type": "git",
+    "url": "http://bitbucket.org/canmap/sandbox-gps.git"
+  },
+  "keywords": [
+    "Electron",
+    "quick",
+    "start",
+    "tutorial",
+    "demo"
+  ],
+  "author": "GitHub",
+  "license": "CC0-1.0",
+  "devDependencies": {
+    "electron": "^1.4.1",
+    "electron-builder": "^10.3.0",
+    "electron-rebuild": "^1.4.0",
+    "gulp": "^3.9.1"
+  },
+  "build": {
+    "appId": "canmap.sandbox.gps",
+    "mac": {
+      "category": "gps"
+    },
+    "win": {
+      "iconUrl": "https://www.iconfinder.com/icons/126573/download/ico",
+      "target": "squirrel"
+    },
+    "directories": {
+      "app": "./sandbox-gps",
+      "output": "../sandbox-gps-release-server/releases"
+    }
+  }
+}
