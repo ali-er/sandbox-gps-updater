@@ -1,8 +1,6 @@
 
 const electron = require('electron')
 
-const _isDev = require('electron-is-dev')
-
 
 // Module to auto update application.
 const {autoUpdater} = electron;
