@@ -33,10 +33,10 @@
       "category": "gps"
     },
     "win": {
-      "iconUrl": "https://www.iconfinder.com/icons/126573/download/ico",
       "target": "squirrel"
     },
     "squirrelWindows": {
+      "iconUrl": "https://www.iconfinder.com/icons/126573/download/ico",
       "remoteReleases": "true"
     },
     "directories": {
