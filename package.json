@@ -36,8 +36,7 @@
       "target": "squirrel"
     },
     "squirrelWindows": {
-      "iconUrl": "https://www.iconfinder.com/icons/126573/download/ico",
-      "remoteReleases": "true"
+      "iconUrl": "https://www.iconfinder.com/icons/126573/download/ico"
     },
     "directories": {
       "app": "./sandbox-gps"

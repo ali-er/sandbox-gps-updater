@@ -75,6 +75,9 @@
             <button class="btn btn-large btn-primary" id="btnClose">Close</button>
             <button class="btn btn-large btn-primary" id="btnClear">Clear</button>
             <button class="btn btn-large btn-primary" id="btnSave">Save</button>
+            <button class="btn btn-large btn-primary" id="btnSync">Sync</button>
+            <button class="btn btn-large btn-primary" id="btnRestore">Restore</button>
+            <button class="btn btn-large btn-primary" id="btnCheckUpdate">Check For Updates</button>
           </div>
 
         </div>
@@ -257,6 +260,44 @@
               document.getElementById("tblGPSReadings").getElementsByTagName("tbody")[0].innerHTML = "";
               appContext.gpsPositionList= [];
             }
+
+            document.getElementById("btnSync").onclick = function(){
+              const syncURL = 'http://192.168.1.26:3000/upload'
+              const dbFilePath = require('electron').remote.app.getPath("userData") + '/stat_db.json'
+              const formData = {
+                file: {
+                  value:  require('fs').createReadStream(dbFilePath),
+                  options: {
+                    filename: 'stat_db.json'
+                  }
+                }
+              }
+              require('request').post({url: syncURL, formData: formData}, (err, res, body) => {
+                if (err) {
+                  return console.error('Upload failed: ', err);
+                }
+            
+                if (res.statusCode == 200) {
+                  console.log('Upload Successful!')
+                }
+                else {
+                  console.log(res.statusCode)
+                }
+              });
+            }
+
+            document.getElementById("btnRestore").onclick = function(){
+              const restoreURL = 'http://192.168.1.26:3000/restore/stat_db.json'
+              require('request').get(restoreURL)
+                                .on('error', (err) => {console.error('Restore Error: ', err)})
+                                .pipe(require('fs').createWriteStream(require('electron').remote.app.getPath("userData") + '/stat_db.json'))
+              console.log('download!');
+            }
+
+            document.getElementById("btnCheckUpdate").onclick = function(){
+              require('electron').remote.autoUpdater.checkForUpdates();
+            }
+
             appContext.bBindPortList = false;
         }
 

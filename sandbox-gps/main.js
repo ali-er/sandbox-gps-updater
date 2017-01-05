@@ -1,6 +1,6 @@
 
-const electron = require('electron')
-
+const electron = require('electron');
+const fs = require('fs');
 
 // Module to auto update application.
 const {autoUpdater} = electron;
@@ -18,8 +18,9 @@ const url = require('url')
 const Datastore = require('nedb');
 const appVersion = require('./package.json').version;
 const {dialog} = electron
-
-const db = new Datastore({ filename: app.getPath("userData") + '/stat_db.json', autoload: true });
+const request = require('request')
+const dbFilePath = app.getPath("userData") + '/stat_db.json'
+const db = new Datastore({ filename: dbFilePath, autoload: true });
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -40,7 +41,7 @@ function createWindow () {
   }))
 
   // Open the DevTools.
-  mainWindow.webContents.openDevTools()
+  //mainWindow.webContents.openDevTools()
 
   // Emitted when the window is closed.
   mainWindow.on('closed', function () {
@@ -51,7 +52,8 @@ function createWindow () {
   })
 
   // Setting up autoUpdater
-  const feedURL = 'http://localhost:3000/updates/latest';  
+  const feedURL = 'http://localhost:3000/updates/latest';
+  const syncURL = 'http://localhost:3000/upload'
   
   autoUpdater.addListener("update-available", function(event) {
 //    dialog.showMessageBox({ message: "New update available!"})  
@@ -81,7 +83,7 @@ function createWindow () {
     autoUpdater.checkForUpdates();
     db.findOne({ _id: 1}, function (err, doc) {
       doc = doc || { _id:1, counter: 0 };
-      dialog.showMessageBox({ message: 'This example was executed ' + doc.counter + ' times. Last access time was ' + doc.lastSeetAt });
+      dialog.showMessageBox({ message: 'This app was executed ' + doc.counter + ' times. Last access time was ' + doc.lastSeetAt });
       doc.lastSeetAt = new Date();
       doc.counter++;
       db.update({ _id: 1 }, doc, { upsert: true }, function (err, num) {
