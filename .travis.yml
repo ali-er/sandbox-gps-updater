@@ -1,6 +1,6 @@
 language: node_js
 node_js:
   - "node"
-before_script:
+before_install:
   - echo -e "Host bitbucket.org\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
 script: npm build --win

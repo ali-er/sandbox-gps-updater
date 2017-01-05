@@ -1,6 +1,6 @@
 {
   "name": "sandbox-gps",
-  "version": "1.0.17",
+  "version": "1.0.18",
   "description": "A minimal Sandbox GPS Electron application",
   "main": "main.js",
   "author": "Ali Ershadi",
