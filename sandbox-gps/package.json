@@ -7,7 +7,7 @@
   "dependencies": {
     "electron-auto-updater": "^0.9.0",
     "electron-squirrel-startup": "^1.0.0",
-    "gps-engine": "git+ssh://git@github.com:ali-er/gps-engine.git",
+    "gps-engine": "git://github.com/ali-er/gps-engine.git",
     "nedb": "^1.8.0",
     "request": "^2.79.0",
     "serialport": "^4.0.6"
