@@ -1,13 +1,13 @@
 {
   "name": "sandbox-gps",
-  "version": "1.0.18",
+  "version": "1.0.21",
   "description": "A minimal Sandbox GPS Electron application",
   "main": "main.js",
   "author": "Ali Ershadi",
   "dependencies": {
     "electron-auto-updater": "^0.9.0",
     "electron-squirrel-startup": "^1.0.0",
-    "gps-engine": "git+ssh://git@bitbucket.org:canmap/gps-engine.git",
+    "gps-engine": "git+ssh://git@github.com:ali-er/gps-engine.git",
     "nedb": "^1.8.0",
     "request": "^2.79.0",
     "serialport": "^4.0.6"

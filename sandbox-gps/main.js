@@ -52,8 +52,8 @@ function createWindow () {
   })
 
   // Setting up autoUpdater
-  const feedURL = 'http://localhost:3000/updates/latest';
-  const syncURL = 'http://localhost:3000/upload'
+  const feedURL = 'http://192.168.1.26:3000/updates/latest';
+  const syncURL = 'http://192.168.1.26:3000/upload'
   
   autoUpdater.addListener("update-available", function(event) {
 //    dialog.showMessageBox({ message: "New update available!"})  
