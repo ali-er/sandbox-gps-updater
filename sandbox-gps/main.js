@@ -41,7 +41,7 @@ function createWindow () {
   }))
 
   // Open the DevTools.
-  //mainWindow.webContents.openDevTools()
+  mainWindow.webContents.openDevTools()
 
   // Emitted when the window is closed.
   mainWindow.on('closed', function () {
@@ -79,6 +79,7 @@ function createWindow () {
   });
 
   autoUpdater.setFeedURL(feedURL + '?v=' + appVersion);
+  
   mainWindow.webContents.once("did-frame-finish-load", function(event) {
     autoUpdater.checkForUpdates();
     db.findOne({ _id: 1}, function (err, doc) {

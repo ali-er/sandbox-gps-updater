@@ -2,6 +2,7 @@
 <html>
 
 <head>
+
   <meta charset="UTF-8">
   <title>Hello World!</title>
   <link rel="stylesheet" href="./photon-0.1.2-dist/css/photon.min.css">
@@ -14,6 +15,7 @@
     
     .content {}
   </style>
+
 </head>
 
 <body>
@@ -78,6 +80,9 @@
             <button class="btn btn-large btn-primary" id="btnSync">Sync</button>
             <button class="btn btn-large btn-primary" id="btnRestore">Restore</button>
             <button class="btn btn-large btn-primary" id="btnCheckUpdate">Check For Updates</button>
+            <button class="btn btn-large btn-primary" id="btnIncrement">+</button>
+            <button class="btn btn-large btn-primary" id="btnDecrement">-</button>
+            <button class="btn btn-large btn-primary" id="btnDownloadLatest">Download Latest</button>
           </div>
 
         </div>
@@ -120,7 +125,9 @@
 <script>
     // You can also require other files to run in this process
     require('./renderer.js')
-    const SaveToFile = require('./saveToFile.js')
+    const SaveToFile = require('./saveToFile.js');
+    const Datastore = require('nedb');
+    const testDB = new Datastore({ filename: require('electron').remote.app.getPath("userData") + '/test_db.json', autoload: true });
 
     var appContext = {
       
@@ -263,16 +270,38 @@
 
             document.getElementById("btnSync").onclick = function(){
               const syncURL = 'http://192.168.1.26:3000/upload'
-              const dbFilePath = require('electron').remote.app.getPath("userData") + '/stat_db.json'
-              const formData = {
+              const statDBFilePath = require('electron').remote.app.getPath("userData") + '/stat_db.json'
+              const statFormData = {
                 file: {
-                  value:  require('fs').createReadStream(dbFilePath),
+                  value:  require('fs').createReadStream(statDBFilePath),
                   options: {
                     filename: 'stat_db.json'
                   }
                 }
               }
-              require('request').post({url: syncURL, formData: formData}, (err, res, body) => {
+              require('request').post({url: syncURL, formData: statFormData}, (err, res, body) => {
+                if (err) {
+                  return console.error('Upload failed: ', err);
+                }
+            
+                if (res.statusCode == 200) {
+                  console.log('Upload Successful!')
+                }
+                else {
+                  console.log(res.statusCode)
+                }
+              });
+
+              const testDBFilePath = require('electron').remote.app.getPath("userData") + '/test_db.json'
+              const testFormData = {
+                file: {
+                  value:  require('fs').createReadStream(testDBFilePath),
+                  options: {
+                    filename: 'test_db.json'
+                  }
+                }
+              }
+              require('request').post({url: syncURL, formData: testFormData}, (err, res, body) => {
                 if (err) {
                   return console.error('Upload failed: ', err);
                 }
@@ -287,10 +316,27 @@
             }
 
             document.getElementById("btnRestore").onclick = function(){
-              const restoreURL = 'http://192.168.1.26:3000/restore/stat_db.json'
-              require('request').get(restoreURL)
-                                .on('error', (err) => {console.error('Restore Error: ', err)})
+              require('request').get('http://192.168.1.26:3000/restore/stat_db.json')
+                                .on('error', (err) => {console.error('Restore Stat Error: ', err)})
                                 .pipe(require('fs').createWriteStream(require('electron').remote.app.getPath("userData") + '/stat_db.json'))
+                                
+              require('request').get('http://192.168.1.26:3000/restore/test_db.json')
+                                .on('error', (err) => {console.error('Restore Test Error: ', err)})
+                                .pipe(require('fs').createWriteStream(require('electron').remote.app.getPath("userData") + '/test_db.json'))
+                                .then( () => {
+                                  restoreDB = new Datastore({ filename: require('electron').remote.app.getPath("userData") + '/test_db.json', autoload: true });
+                                  restoreDB.find({}, function(err, docs) {
+                                    if (err) return console.log(err);
+                                    docs.forEach((item) => {
+                                      db.insert(item, (err) => {
+                                        if (err) return console.log(err);
+                                        console.log('Row inserted: ' + item)
+                                      })
+                                    })
+                                  });
+                                })
+
+
               console.log('download!');
             }
 
@@ -298,6 +344,48 @@
               require('electron').remote.autoUpdater.checkForUpdates();
             }
 
+            document.getElementById("btnIncrement").onclick = function(){
+              testDB.findOne({}).sort({ date: -1}).exec(function (err, doc) {
+                doc = doc || { counter: 0 };
+                doc.date = new Date();
+                doc.counter++;
+                doc._id = undefined;
+                testDB.insert(doc, function(err) {
+                  if (err) return console.log(err);
+                  console.log('Incremented to ' + doc.counter);
+                })
+              })
+            }
+
+            document.getElementById("btnDecrement").onclick = function(){
+                testDB.findOne({}).sort({ date: -1}).exec(function (err, doc) {
+                doc = doc || { counter: 0 };
+                doc.date = new Date();
+                doc.counter--;
+                doc._id = undefined;
+                testDB.insert(doc, function(err) {
+                  if (err) return console.log(err);
+                  console.log('Decremented to ' + doc.counter);
+                })
+              })
+            }
+
+            document.getElementById("btnDownloadLatest").onclick = function(){
+              const downloadURL = 'http://192.168.1.26:3000/updates/latest/sandbox-gps Setup 1.0.20.exe';
+              const req = require('request');
+              req.get(downloadURL)
+                 .on('error', (err) => {console.error('Download Error: ', err)})
+                 .on('response', function ( data ) {
+                  console.log('Size: ' + data.headers[ 'content-length' ] );
+                 })
+                 .on('data', function(chunk) {
+                  console.log('progress: ' + chunk.length);
+                 })
+                 .pipe(require('fs').createWriteStream(require('electron').remote.app.getPath("userData") + '/Update.exe'));
+
+
+              console.log('download!');
+            }
             appContext.bBindPortList = false;
         }
 
